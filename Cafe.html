@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Document</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f8f9fa; /* Light neutral background */
+            margin: 0;
+            color: #333;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 18px;
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+            padding: 45px;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #a2d2ff; /* Added border */
+        }
+
+        .quiz-container::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            left: -60px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(162,210,255,0.4) 0%, rgba(162,210,255,0) 70%); /* More distinct splash */
+            border-radius: 50%;
+        }
+
+        .quiz-container h2 {
+            color: #2c3e50; /* Darker, more prominent heading */
+            margin-bottom: 35px;
+            font-size: 2.2em;
+            border-bottom: 3px solid #b0e0e6;
+            padding-bottom: 18px;
+        }
+
+        .options-container {
+            margin-bottom: 35px;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid #cfe2f3; /* Softer border */
+            border-radius: 35px;
+            background-color: #e6f7ff; /* Light blue background */
+            font-size: 1.2em;
+            color: #34495e; /* Dark text */
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-align: left;
+            padding-left: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .option-btn:hover {
+            background-color: #d0efff; /* Lighter blue on hover */
+            border-color: #89cff0; /* Blue border on hover */
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .option-btn.selected {
+            background-color: #a8e6cf; /* Green for selected */
+            border-color: #4CAF50;
+            color: #1b5e20;
+            font-weight: bold;
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+            transform: scale(1.02);
+        }
+
+        .submit-btn {
+            background-color: #007bff; /* Primary blue */
+            color: #fff;
+            border: none;
+            border-radius: 35px;
+            padding: 18px 45px;
+            font-size: 1.4em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        .feedback {
+            margin-top: 30px;
+            font-size: 1.3em;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .feedback.correct {
+            color: #1a531a; /* Darker green */
+            background-color: #d4edda;
+            border: 1px solid #28a745;
+        }
+
+        .feedback.incorrect {
+            color: #721c24; /* Darker red */
+            background-color: #f8d7da;
+            border: 1px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h2 id="question"></h2>
+        <div id="options-container" class="options-container">
+        </div>
+        <button id="submit-btn" class="submit-btn">Submit Answer</button>
+        <div id="feedback" class="feedback"></div>
+    </div>
+    <script>
+        const quizData = [
+            {
+                question: "What is the most crucial step when planning to open a new cafe?",
+                options: ["Hiring staff", "Securing a prime location", "Designing the menu", "Choosing a coffee supplier"],
+                correct: "Securing a prime location"
+            },
+            {
+                question: "Which of these is NOT a key consideration for a cafe's interior design?",
+                options: ["Comfortable seating", "Ambiance and lighting", "Efficient workflow for baristas", "The CEO's favorite color scheme"],
+                correct: "The CEO's favorite color scheme"
+            },
+            {
+                question: "What is a common marketing strategy for a newly opened cafe?",
+                options: ["Grand opening event", "Loyalty programs", "Social media campaigns", "All of the above"],
+                correct: "All of the above"
+            }
+        ];
+
+        const questionElement = document.getElementById('question');
+        const optionsContainer = document.getElementById('options-container');
+        const submitBtn = document.getElementById('submit-btn');
+        const feedbackElement = document.getElementById('feedback');
+
+        let currentQuiz = 0;
+        let selectedAnswer = null;
+
+        function loadQuiz() {
+            deselectAnswers();
+            const currentQuizData = quizData[currentQuiz];
+            questionElement.innerText = currentQuizData.question;
+            optionsContainer.innerHTML = '';
+            currentQuizData.options.forEach(option => {
+                const button = document.createElement('button');
+                button.classList.add('option-btn');
+                button.innerText = option;
+                button.addEventListener('click', () => {
+                    deselectAnswers();
+                    button.classList.add('selected');
+                    selectedAnswer = option;
+                });
+                optionsContainer.appendChild(button);
+            });
+            feedbackElement.innerText = '';
+        }
+
+        function deselectAnswers() {
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            selectedAnswer = null;
+        }
+
+        submitBtn.addEventListener('click', () => {
+            if (selectedAnswer) {
+                checkAnswer();
+            } else {
+                feedbackElement.innerText = 'Please select an answer!';
+                feedbackElement.classList.remove('correct', 'incorrect');
+                feedbackElement.style.color = 'orange';
+            }
+        });
+
+        function checkAnswer() {
+            const currentQuizData = quizData[currentQuiz];
+            if (selectedAnswer === currentQuizData.correct) {
+                feedbackElement.innerText = 'Your answer is Correct!';
+                feedbackElement.classList.remove('incorrect');
+                feedbackElement.classList.add('correct');
+            } else {
+                feedbackElement.innerText = `Your answer is Incorrect. The correct answer was ${currentQuizData.correct}.`;
+                feedbackElement.classList.remove('correct');
+                feedbackElement.classList.add('incorrect');
+            }
+            // Optionally, move to next question after a short delay
+            setTimeout(() => {
+                currentQuiz++;
+                if (currentQuiz < quizData.length) {
+                    loadQuiz();
+                } else {
+                    questionElement.innerText = 'Quiz Completed! Refresh to play again.';
+                    optionsContainer.innerHTML = '';
+                    submitBtn.style.display = 'none';
+                    feedbackElement.innerText = '';
+                }
+            }, 2000);
+        }
+
+        loadQuiz();
+    </script>
+</body>
+</html>
